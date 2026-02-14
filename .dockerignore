@@ -1,13 +1,40 @@
+# Git
+.git/
+.gitignore
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.egg-info/
-dist/
-build/
-.env
-*.db
-data/
-.venv/
 venv/
+.venv/
+
+# Node
 node_modules/
 .next/
+out/
+*.tsbuildinfo
+
+# Build artifacts
+dist/
+build/
+
+# Environment & Data
+.env
+.env.*
+*.db
+data/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docs & Tests
+*.md
+backend/tests/
+
+# Docker (prevent recursive inclusion)
+docker-compose*.yml

@@ -1,0 +1,74 @@
+# ──────────────────────────────────────────────────────────────
+# GenAI Prep – OMV Production Deployment
+# ──────────────────────────────────────────────────────────────
+# Deploy on OMV:
+#   1. Copy this file to your OMV server (e.g. /srv/docker/genai-prep/)
+#   2. Create a .env file next to it with:  TUNNEL_TOKEN=<your-cloudflare-tunnel-token>
+#   3. Run:  docker compose -f docker-compose.prod.yml up -d
+#
+# Cloudflare Tunnel setup:
+#   - Create a tunnel at https://one.dash.cloudflare.com
+#   - Add a public hostname (e.g. genai.yourdomain.com)
+#   - Point it to service: http://genai-frontend:3000
+#   - Paste the tunnel token into your .env file
+# ──────────────────────────────────────────────────────────────
+
+services:
+  # ── Backend API ────────────────────────────────────────────
+  backend:
+    image: ghcr.io/vnaveenb/genai-prep-backend:latest
+    container_name: genai-backend
+    restart: unless-stopped
+    # No ports exposed to host – only accessible via frontend rewrites
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/genai_learn.db
+      - GENAI_JSON_PATH=/app/genai.json
+      - ALLOWED_ORIGINS=*
+      - ENCRYPTION_KEY=change-me-in-production-use-strong-key
+    volumes:
+      - genai-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  # ── Frontend (Next.js) ─────────────────────────────────────
+  frontend:
+    image: ghcr.io/vnaveenb/genai-prep-frontend:latest
+    container_name: genai-frontend
+    restart: unless-stopped
+    ports:
+      - "3530:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  # ── Cloudflare Tunnel ──────────────────────────────────────
+  cloudflared-genai:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-genai
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+
+volumes:
+  genai-data:
