@@ -23,7 +23,7 @@ services:
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/genai_learn.db
       - GENAI_JSON_PATH=/app/genai.json
-      - ALLOWED_ORIGINS=*
+      - ALLOWED_ORIGINS=["*"]
       - ENCRYPTION_KEY=change-me-in-production-use-strong-key
     volumes:
       - genai-data:/app/data

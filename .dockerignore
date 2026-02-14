@@ -3,17 +3,17 @@
 .gitignore
 
 # Python
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *.pyo
 *.egg-info/
-venv/
-.venv/
+**/venv/
+**/.venv/
 
 # Node
-node_modules/
-.next/
-out/
+**/node_modules/
+**/.next/
+**/out/
 *.tsbuildinfo
 
 # Build artifacts
